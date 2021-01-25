@@ -18,28 +18,26 @@ public class ClientInit implements ClientModInitializer {
 	public void onInitializeClient() {
 		ClientLoginNetworking.registerGlobalReceiver(Channels.HELLO, (client, handler, buf, listenerAdder) -> {
 			return CompletableFuture.supplyAsync(() -> {
-				int selfHash = IdListExt.cachedHash(Block.STATE_IDS);
-				Etc.LOGGER.info("Id hash: " + IdListExt.cachedHash(Block.STATE_IDS));
-				Etc.LOGGER.info("Server hash: " + buf.readInt());
+				//TODO: doesn't actually do anything with the server-sent data, lol
+				// could use that to get a little jump on the rsync algorithm (client would send the first couple of hashes now)
+				int serverHash = buf.readInt();
 				
 				PacketByteBuf response = PacketByteBufs.create();
-				response.writeInt(selfHash);
+				response.writeInt(IdListExt.cachedHash(Block.STATE_IDS));
 				return response;
 			}, client);
 		});
 		
-		ClientLoginNetworking.registerGlobalReceiver(Channels.OVERRIDE_STATEMAP, (client, handler, buf, listenerAdder) -> {
-			return CompletableFuture.supplyAsync(() -> {
-				Etc.LOGGER.info("Received statemap from the server");
-				IdList<BlockState> newList = Etc.deserializeStatemap(buf);
-				Etc.LOGGER.info("Statemap has " + newList.size() + " entries");
-				((BlockExt) Blocks.AIR).replaceIdList(newList);
-				return null;
-			}, client);
-		});
+//		ClientLoginNetworking.registerGlobalReceiver(Channels.OVERRIDE_STATEMAP, (client, handler, buf, listenerAdder) -> {
+//			return CompletableFuture.supplyAsync(() -> {
+//				IdList<BlockState> newList = Etc.deserializeStatemap(buf);
+//				((BlockExt) Blocks.AIR).replaceIdList(newList);
+//				return null;
+//			}, client);
+//		});
 		
 		ClientLoginConnectionEvents.DISCONNECT.register((handler, client) -> {
-			Etc.LOGGER.info("Switching back to my own statemap!!!");
+			//Mfw it's static
 			((BlockExt) Blocks.AIR).unreplaceIdList();
 		});
 	}
