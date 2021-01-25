@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "agency.highlysuspect.reshifter.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"mixins": [
+		"BlockMixin",
+		"IdListMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
