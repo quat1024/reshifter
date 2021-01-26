@@ -1,6 +1,6 @@
 package agency.highlysuspect.reshifter.mixin;
 
-import agency.highlysuspect.reshifter.BlockExt;
+import agency.highlysuspect.reshifter.etc.BlockExt;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.collection.IdList;

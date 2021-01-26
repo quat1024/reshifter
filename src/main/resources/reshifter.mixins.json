@@ -7,6 +7,9 @@
 		"BlockMixin",
 		"IdListMixin"
 	],
+	"client": [
+		"client.ClientLoginNetworkHandlerMixin"
+	],
 	"injectors": {
 		"defaultRequire": 1
 	}
