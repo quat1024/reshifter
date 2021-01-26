@@ -1,14 +1,9 @@
 package agency.highlysuspect.reshifter.etc;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import net.minecraft.util.collection.IdList;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
