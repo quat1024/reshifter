@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
 import net.minecraft.block.Block;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
 
 @SuppressWarnings("CodeBlock2Expr")
@@ -17,9 +16,7 @@ public class Init implements ModInitializer {
 	public void onInitialize() {
 		ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
 			synchronizer.waitFor(server.submit(() -> {
-				PacketByteBuf buf = PacketByteBufs.create();
-				buf.writeInt(IdListExt.cachedHash(Block.STATE_IDS));
-				sender.sendPacket(Channels.HELLO, buf);
+				sender.sendPacket(Channels.HELLO, PacketByteBufs.create());
 			}));
 		});
 		
@@ -31,19 +28,23 @@ public class Init implements ModInitializer {
 				}
 				
 				int clientHash = buf.readInt();
-				boolean matched = clientHash == IdListExt.cachedHash(Block.STATE_IDS);
+				int serverHash = IdListExt.cachedHash(Block.STATE_IDS);
+				boolean matched = clientHash == serverHash;
 				if(!matched) {
-					//handler.disconnect(new LiteralText("Blockstate ID lists do not match!"));
+					Etc.LOGGER.info("{} is logging in with a mismatched state IDs table (my hash {}, their hash {}). Sending them my copy", handler.getConnectionInfo(), clientHash, serverHash);
+					
 					try {
+						int packetCount = 0;
+						
 						byte[] data = IdListExt.toCompressedByteArray(Block.STATE_IDS, (state, out) -> new StateDescription(state).write(out));
 						Chunking.Chunker chunker = new Chunking.Chunker(data);
 						
-						Etc.LOGGER.info("total chunked size: " + chunker.totalLength());
-						
 						while(!chunker.isDone()) {
-							Etc.LOGGER.info("sending state_ids_chunk message");
 							responseSender.sendPacket(Channels.STATE_IDS_CHUNK, chunker.writeNextChunk(PacketByteBufs.create()));
+							packetCount++;
 						}
+						
+						Etc.LOGGER.info("Successfully compressed and sent state IDs table; it fit into {} packets", packetCount);
 					} catch (Exception e) {
 						handler.disconnect(new LiteralText("Serverside error compressing state ID table, see server log"));
 						Etc.LOGGER.error("Serverside error compressing state ID table", e);
@@ -53,7 +54,8 @@ public class Init implements ModInitializer {
 		});
 		
 		ServerLoginNetworking.registerGlobalReceiver(Channels.STATE_IDS_CHUNK, (server, handler, understood, buf, synchronizer, responseSender) -> {
-			//Dont do anything
+			//Don't touch this block of code or you get hit with a bunch of "unexpected query response" kicks after the ID table is sent
+			//Not sure why
 		});
 	}
 }

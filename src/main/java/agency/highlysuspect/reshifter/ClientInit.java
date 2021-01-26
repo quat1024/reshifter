@@ -19,10 +19,6 @@ public class ClientInit implements ClientModInitializer {
 	public void onInitializeClient() {
 		ClientLoginNetworking.registerGlobalReceiver(Channels.HELLO, (client, handler, buf, listenerAdder) -> {
 			return CompletableFuture.supplyAsync(() -> {
-				//TODO: doesn't actually do anything with the server-sent data, lol
-				// could use that to get a little jump on the rsync algorithm (client would send the first couple of hashes now)
-				int serverHash = buf.readInt();
-				
 				PacketByteBuf response = PacketByteBufs.create();
 				response.writeInt(IdListExt.cachedHash(Block.STATE_IDS));
 				return response;
@@ -31,13 +27,13 @@ public class ClientInit implements ClientModInitializer {
 		
 		ClientLoginNetworking.registerGlobalReceiver(Channels.STATE_IDS_CHUNK, (client, handler, buf, listenerAdder) -> {
 			return CompletableFuture.supplyAsync(() -> {
-				Etc.LOGGER.info("received state ids chunk packet");
+				Etc.LOGGER.info("Received state IDs packet from the server");
 				
 				Chunking.Unchunker unchunker = ClientLoginNetworkHandlerExt.getOrCreateUnchunker(handler);
 				unchunker.handleByteBuf(buf);
 				
 				if(unchunker.isFinished()) {
-					Etc.LOGGER.info("unchunker says it's finished");
+					Etc.LOGGER.info("Unchunking completed, applying new state IDs table");
 					try {
 						byte[] result = unchunker.getBytes();
 						IdList<BlockState> newList = IdListExt.fromCompressedByteArray(result, data -> StateDescription.read(data).approximateBlockState());
@@ -55,6 +51,7 @@ public class ClientInit implements ClientModInitializer {
 		});
 		
 		ClientLoginConnectionEvents.DISCONNECT.register((handler, client) -> {
+			Etc.LOGGER.info("Reverting to old state IDs table");
 			BlockExt.unreplaceIdList0();
 			ClientLoginNetworkHandlerExt.freeUnchunker(handler);
 		});

@@ -20,6 +20,6 @@ If a mod that does this is present on only *one* of the client *or* the server, 
 
 ## Algorithm Description
 
-ok i'd love to produce a dang paper on how this works but... it doesnt lol. Currently it just hashes the state_ids list with a simple hashcode-like hash, exchanges the results, and the server kicks you if they don't match.
+There was gonna be a fancy algorithm to like rsync the states across but unascribed was like "why not just gzip and chunk it" and that works perfectly fine.
 
-I experimented with the server sending the entire state_ids list to the client, but it's far too big to fit into a packet. Studying the rsync algorithm will be really handy here (they will basically differ only by a few inserts/deletes)
+The server asks the client for its hash of the state_ids table, and if they differ, the server serializes its table, gzips it, and sends it to the client. 
