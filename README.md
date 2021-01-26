@@ -3,10 +3,8 @@ Reshifter
 
 Detects and corrects for "blockstate mismatch" bugs when connecting to a server.
 
-~~the *plan* is for~~  
 Blockstates that exist on the server but not the client will be stripped.  
-Blockstates that exist on the client but not the server will simply never appear.  
-~~although that doesn't work rn.~~
+Blockstates that exist on the client but not the server will always be set to their default values.
 
 LGPL 3.0 or later.
 
@@ -20,6 +18,6 @@ If a mod that does this is present on only *one* of the client *or* the server, 
 
 ## Algorithm Description
 
-There was gonna be a fancy algorithm to like rsync the states across but unascribed was like "why not just gzip and chunk it" and that works perfectly fine.
+There was gonna be a fancy algorithm to like, rsync the states across, but unascribed was like "why not just gzip and send it in chunks?" and guess what that works perfectly fine lmao. In vanilla I'm already like several orders of magnitude under the chunk threshold hahaha
 
-The server asks the client for its hash of the state_ids table, and if they differ, the server serializes its table, gzips it, and sends it to the client. 
+The server asks the client for its hash of the state_ids table, and if they differ, the server serializes its table, gzips it, and sends it to the client. That's all. 
